@@ -36,12 +36,13 @@ fun App() {
     MaterialTheme {
         var selectedButtonId by remember { mutableStateOf<String?>(null) }
 
+        // 1. Use mutableStateListOf to track list changes
         val rowButtons = remember {
             mutableStateListOf(
-                RowButtons("ClimbAlinment", 0.15f, 1.05f, true),
-                RowButtons("StaticShooting", 0.25f, 1.05f, false),
-                RowButtons("ShootOnMove", 0.35f, 1.05f, false),
-                RowButtons("AutoIntake", 0.45f, 1.05f, false),
+                RowButtons("S1", 0.15f, 1.05f, false),
+                RowButtons("S2", 0.25f, 1.05f, false),
+                RowButtons("S3", 0.35f, 1.05f, false),
+                RowButtons("S4", 0.45f, 1.05f, false),
                 RowButtons("S5", 0.55f, 1.05f, false),
                 RowButtons("S6", 0.65f, 1.05f, false),
             )
@@ -49,12 +50,12 @@ fun App() {
 
         val fieldButtons = remember {
             listOf(
-                FieldLocationButton("L1", 0.15f, 0.10f, Color.Black),
-                FieldLocationButton("L2", 0.15f, 0.44f, Color.Black),
-                FieldLocationButton("L3", 0.15f, 0.73f, Color.Black),
-                FieldLocationButton("R1", 0.30f, 0.10f, Color.Black),
-                FieldLocationButton("R2", 0.30f, 0.44f, Color.Black),
-                FieldLocationButton("R3", 0.30f, 0.73f, Color.Black)
+                FieldLocationButton("L1", 0.15f, 0.10f, Color.White),
+                FieldLocationButton("L2", 0.15f, 0.44f, Color.Red),
+                FieldLocationButton("L3", 0.15f, 0.73f, Color.Gray),
+                FieldLocationButton("R1", 0.30f, 0.10f, Color.Cyan),
+                FieldLocationButton("R2", 0.30f, 0.44f, Color.LightGray),
+                FieldLocationButton("R3", 0.30f, 0.73f, Color.Yellow)
             )
         }
 
@@ -77,7 +78,9 @@ fun App() {
                     contentScale = ContentScale.FillBounds
                 )
 
+                // --- ROW BUTTONS LOGIC ---
                 rowButtons.forEachIndexed { index, button ->
+                    // Determine color based on the actual state in the list
                     val buttonColor = if (button.active) Color.Cyan else Color.Black
 
                     Button(
@@ -93,15 +96,18 @@ fun App() {
                         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
+                            // 2. Update the list by replacing the item with a copied version
                             rowButtons[index] = button.copy(active = !button.active)
                         }
                     ) {
+                        // Optional: Add text or ID inside button for clarity
                     }
                 }
 
+                // --- FIELD BUTTONS LOGIC ---
                 fieldButtons.forEach { button ->
                     val isSelected = selectedButtonId == button.id
-                    val buttonColor = if (isSelected) button.activeColor else Color.Black.copy(alpha = 0.4f)
+                    val buttonColor = if (isSelected) button.activeColor else Color.Black
 
                     Button(
                         modifier = Modifier
