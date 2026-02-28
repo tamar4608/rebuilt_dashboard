@@ -6,7 +6,7 @@ import androidx.compose.ui.window.application
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "rebuilt_dashboard",
+        title = "Rebuilt Dashboard",
     ) {
         App()
     }
