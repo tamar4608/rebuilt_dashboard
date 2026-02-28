@@ -44,7 +44,9 @@ kotlin {
             implementation(libs.wpilibj)
             implementation(libs.ntcore)
             implementation(libs.wpiutil)
+            implementation(libs.wpimath)
             implementation(libs.jackson.core)
+            implementation(libs.quickbuf.runtime)
             api("edu.wpi.first.ntcore:ntcore-java:$wpilibVersion")
             api("edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion")
             api("edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:$jniPlatform")
@@ -60,7 +62,17 @@ dependencies {
 }
 
 val wpilibNativesDir = nativeTasks.assemble.map { it.destinationDir }
-val wpilibNativesLibDir = wpilibNativesDir.map { it.resolve("linux/x86-64/shared") }
+val nativePlatformDir = when (jniPlatform) {
+    "linuxx86-64" -> "linux/x86-64"
+    "linuxarm64" -> "linux/arm64"
+    "linuxarm32" -> "linux/arm32"
+    "linuxathena" -> "linux/athena"
+    "windowsx86-64" -> "windows/x86-64"
+    "windowsarm64" -> "windows/arm64"
+    "osxuniversal" -> "osx/universal"
+    else -> "linux/x86-64"
+}
+val wpilibNativesLibDir = wpilibNativesDir.map { it.resolve("$nativePlatformDir/shared") }
 tasks.withType<JavaExec>().configureEach {
     dependsOn(nativeTasks.assemble)
     systemProperty("java.library.path", wpilibNativesLibDir.get().absolutePath)
