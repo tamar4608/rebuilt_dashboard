@@ -39,7 +39,7 @@ apply(from = "versioningHelper.gradle")
 
 val versionString: String by extra
 
-val wpilibVersion = "2026.2.1"
+val wpilibVersion = "2025.3.2"
 val pubVersion = versionString
 val isDev = pubVersion.startsWith("dev")
 val wpilibNativeName = wpilibTools.platformMapper.currentPlatform.platformName
@@ -48,6 +48,8 @@ val jniPlatform = wpilibTools.platformMapper.wpilibClassifier
 extra.apply {
     set("wpilibVersion", wpilibVersion)
     set("wpimathVersion", wpilibVersion)
+    set("openCVYear", "2025")
+    set("openCVversion", "4.10.0-3")
     set("javalinVersion", "6.7.0")
     set("frcYear", "2026")
     set("pubVersion", pubVersion)

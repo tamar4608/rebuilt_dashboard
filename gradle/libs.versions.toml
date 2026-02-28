@@ -6,7 +6,8 @@ junit = "4.13.2"
 kotlin = "2.3.0"
 kotlinx-coroutines = "1.10.2"
 material3 = "1.10.0-alpha05"
-wpilib = "2026.2.1"
+wpilib = "2025.3.2"
+jackson = "2.17.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -23,6 +24,8 @@ compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-previ
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 wpilibj = { module = "edu.wpi.first.wpilibj:wpilibj-java", version.ref = "wpilib" }
 ntcore = { module = "edu.wpi.first.ntcore:ntcore-java", version.ref = "wpilib" }
+wpiutil = { module = "edu.wpi.first.wpiutil:wpiutil-java", version.ref = "wpilib" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
