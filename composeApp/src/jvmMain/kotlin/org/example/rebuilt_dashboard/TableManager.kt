@@ -13,8 +13,7 @@ enum class ConnectionType {
 const val PUBLISHER_BASE_TOPIC = "/AdvantageKit/DriverDashboard"
 val baseTable: NetworkTable = NetworkTableInstance.getDefault().getTable(PUBLISHER_BASE_TOPIC)
 
-val robotPose: StructSubscriber<Pose2d> = NetworkTableInstance.getDefault().getTable("/AdvantageKit/RealOutputs/Odometry").getStructTopic("Robot",
-        Pose2d.struct).subscribe(Pose2d())
+val robotPose: StructSubscriber<Pose2d> = NetworkTableInstance.getDefault().getTable("/AdvantageKit/RealOutputs/Odometry").getStructTopic("Robot", Pose2d.struct).subscribe(Pose2d())
 
 fun startClient(connectionType: ConnectionType){
     println("Creating Client with connection type $connectionType")
