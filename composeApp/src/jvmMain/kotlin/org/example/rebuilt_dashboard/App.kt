@@ -29,8 +29,7 @@ internal enum class Alliance {
 }
 
 internal object DashboardData {
-    private val ntInstance = NetworkTableInstance.getDefault()
-    private val isRedSubscriber = ntInstance.getTable("/AdvantageKit/RealOutputs")
+    private val isRedSubscriber = NetworkTableInstance.getDefault().getTable("/AdvantageKit/RealOutputs")
         .getBooleanTopic("IS_RED")
         .subscribe(true)
 
@@ -39,14 +38,14 @@ internal object DashboardData {
 
 
 
-     internal val _isCompetition = ntInstance.getTable("AdvantageKit/DriverStation/FMSAttached")
+     internal val _isCompetition = NetworkTableInstance.getDefault().getTable("AdvantageKit/DriverStation/FMSAttached")
             .getBooleanTopic("_isCompetition")
             .subscribe(false)
 
         val isCompetition: Boolean
             get() = _isCompetition.get()
 
-    val robotPoseSubscriber = ntInstance.getTable("/AdvantageKit/RealOutputs/Odometry")
+    val robotPoseSubscriber = NetworkTableInstance.getDefault().getTable("/AdvantageKit/RealOutputs/Odometry")
         .getStructTopic("Robot", edu.wpi.first.math.geometry.Pose2d.struct)
         .subscribe(edu.wpi.first.math.geometry.Pose2d())
 
@@ -56,7 +55,7 @@ internal object DashboardData {
 data class FieldLocationButton(
     val id: String,
     val initialX: Float,
-    val initialY: Float
+    val initialY: Float,
 )
 
 data class RowButtons(
@@ -64,6 +63,7 @@ data class RowButtons(
     val initialX: Float,
     val initialY: Float,
     var active: Boolean
+
 )
 
 
@@ -87,9 +87,17 @@ fun App() {
             )
         }
 
+        fun updateRowButtonInNT(id: String, isActive: Boolean) {
+            NetworkTableInstance.getDefault()
+                .getTable("AdvantageKit/DriverDashboard/RowButtons/$id")
+                .getBooleanTopic("$id")
+                .publish()
+                .set(isActive)
+        }
+
         val fieldButtonsBase = remember {
             listOf(
-                FieldLocationButton("Upper Corner", 0.015f, 0.025f),
+                FieldLocationButton("Upper Corner", 0.015f, 0.025f,),
                 FieldLocationButton("Climb", 0.015f, 0.46f),
                 FieldLocationButton("Lower Corner", 0.015f, 0.83f),
                 FieldLocationButton("Upper Trench", 0.245f, 0.025f),
@@ -120,16 +128,39 @@ fun App() {
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         contentAlignment = Alignment.TopCenter
                     ) {
-                        Text(
-                            text = formatTime(timeInMillis),
-                            color = Color.White,
-                            fontSize = dynamicTimerFontSize,
-                            fontWeight = FontWeight.ExtraBold,
-                            modifier = Modifier.background(
-                                Color.Black.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(8.dp)
-                            ).padding(horizontal = 20.dp, vertical = 5.dp)
-                        )
+
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center) {
+
+                            // הטיימר הראשי
+                            Text(
+                                text = formatTime(timeInMillis),
+                                color = Color.White,
+                                fontSize = dynamicTimerFontSize,
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.background(
+                                    Color.Black.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ).padding(horizontal = 20.dp, vertical = 5.dp)
+                            )
+
+                            // האקטיב המציק של אדר
+                                // תוסיפי שאם זה זמני אוטונומי או אנדגיים זה יהיה כתוב
+                            val isActive = isOurHubActive
+                            val timeToWait = timeUntilNextShift
+                            val statusText = if (isActive) "Inactive in: ${timeToWait}s" else "Active in: ${timeToWait}s"
+                            val statusColor = if (isActive) Color.Green.copy(alpha = 0.8f) else Color.Yellow.copy(alpha = 0.8f)
+
+                            if (timeToWait > 0) { // מציג רק אם יש משמרת קרובה
+                                Text(
+                                    text = statusText,
+                                    color = statusColor,
+                                    fontSize = (dynamicTimerFontSize.value * 0.3f).sp, // טקסט קטן משמעותית
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
                     }
 
                     BoxWithConstraints(
@@ -167,7 +198,13 @@ fun App() {
                                     alliance = currentAlliance,
                                     label = "",
                                     boardWidthPx = boardWidthPx.toFloat(),
-                                    onClick = { selectedButtonId = if (isSelected) null else button.id }
+                                    onClick = { selectedButtonId = if (isSelected) null else button.id
+                                        NetworkTableInstance.getDefault()
+                                            .getTable("AdvantageKit/DriverDashboard/$selectedButtonId")
+                                            .getStringTopic("shootLocation")
+                                            .publish().set(selectedButtonId ?: "None")
+
+                                    }
                                 )
                             }
                         }
@@ -177,6 +214,9 @@ fun App() {
                             val spacing = 1f / (visibleButtons.size + 1)
                             val symX = (index + 1) * spacing - (rowBtnWidth.value / maxWidth.value / 2)
                             val finalX = if (isInMatch) symX else button.initialX
+                            LaunchedEffect(button.active) {
+                                updateRowButtonInNT(button.id, button.active)
+                            }
 
                             AllianceStyledButton(
                                 modifier = Modifier
