@@ -71,6 +71,7 @@ data class RowButtons(
 
 @Composable
 fun App() {
+    startClient(ConnectionType.LOCAL)
     MaterialTheme {
         var selectedButtonId by remember { mutableStateOf<String?>(null) }
         val currentAlliance = DashboardData.currentAlliance
