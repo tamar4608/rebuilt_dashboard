@@ -3,11 +3,19 @@ package org.example.rebuilt_dashboard
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.util.Color
 
+
 private var isShiftOneActiveRedBackingField: Boolean? = null
 private val gameSpecificSubscriber = NetworkTableInstance.getDefault().getTable("/AdvantageKit/DriverStation").getStringTopic("GameSpecificMessage").subscribe("R")
 private val isRedSubscriber = NetworkTableInstance.getDefault().getTable("/AdvantageKit/RealOutputs/IS_RED").getBooleanTopic("IS_RED").subscribe(true)
 
-private val IS_RED
+// גישה לערך הנוכחי של הזמן במילישניות
+private val currentTimeMs: Long
+    get() = MatchTime.matchTime.value
+
+// המרה לשניות לצורך הלוגיקה של המשחק
+private val currentTimeSec: Long
+    get() = currentTimeMs / 1000
+internal val IS_RED
     get() = isRedSubscriber.get()
 
 private fun isShiftOneActiveRed(): Boolean? {
@@ -31,13 +39,14 @@ private val SHIFT_CHANGES =
 
 val isOurHubActive: Boolean
     get() {
+        val time = currentTimeSec
         // Both Hubs are active in the beginning and end of the match.
         val bothHubsActive =
-            matchTime !in SHIFT_CHANGES.last()..SHIFT_CHANGES.first()
+            time !in SHIFT_CHANGES.last()..SHIFT_CHANGES.first()
 
         val wasShiftOneOurs = IS_RED == isShiftOneActiveRed()
 
-        val currentIndex = SHIFT_CHANGES.indexOfFirst { matchTime > it }
+        val currentIndex = SHIFT_CHANGES.indexOfFirst { time > it }
         val isCurrentShiftOdd = currentIndex % 2 == 1
 
         return bothHubsActive || (wasShiftOneOurs == isCurrentShiftOdd)
@@ -45,8 +54,9 @@ val isOurHubActive: Boolean
 
 val activeColor: Color
     get() {
+        val time = currentTimeSec
         return (if (
-            isShiftOneActiveRed() == null || matchTime < SHIFT_CHANGES.last()
+            isShiftOneActiveRed() == null || time < SHIFT_CHANGES.last()
         )
             Color.kPurple
         else {
@@ -56,11 +66,12 @@ val activeColor: Color
         })
     }
 
-val timeUntilNextShift: Double
+val timeUntilNextShift: Long
     get() {
-        SHIFT_CHANGES.find { matchTime > it }
+        val time = currentTimeSec
+        SHIFT_CHANGES.find { time > it }
             ?.let {
-                return (matchTime - it)
+                return (time - it)
             }
-        return 0.0
+        return 0
     }
