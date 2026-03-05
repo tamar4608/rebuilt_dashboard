@@ -23,7 +23,6 @@ import rebuilt_dashboard.composeapp.generated.resources.arrow_right
 import rebuilt_dashboard.composeapp.generated.resources.field_2026_RB
 
 
-// --- Logic & Enums ---
 
 internal enum class Alliance {
     RED, BLUE
@@ -42,7 +41,7 @@ internal object DashboardData {
 
      internal val _isCompetition = ntInstance.getTable("AdvantageKit/DriverStation/FMSAttached")
             .getBooleanTopic("_isCompetition")
-            .subscribe(false) //די כבר להתעצל תסדרי שאם זה true ויש רק 4 כפתורים - המיקומים שלהם ישתנו ויהיו סימטריים :)
+            .subscribe(false)
 
         val isCompetition: Boolean
             get() = _isCompetition.get()
@@ -69,7 +68,6 @@ data class RowButtons(
 
 
 
-// ... (אותם Imports ו-Logic) ...
 
 @Composable
 fun App() {
@@ -142,7 +140,7 @@ fun App() {
                         val fieldBtnWidth = maxWidth * 0.08f
                         val fieldBtnHeight = maxHeight * 0.15f
 
-                        // כפתורי שורה - חישוב גדלים ומיקומים
+                        // פה הכפתורי שורה :) (כולל כזה להעלים בתחרות בלה בלה לשנות גדלים בלה בלה)
                         val visibleButtons = rowButtons.filter { !isInMatch || it.id != "Shooting Calibration" }
                         val rowBtnWidth = maxWidth * (if (isInMatch) 0.18f else 0.17f)
                         val rowBtnHeight = maxHeight * 0.15f
@@ -154,7 +152,7 @@ fun App() {
                             contentScale = ContentScale.FillBounds
                         )
 
-                        // כפתורי מגרש
+                        // פה הכפתורי מגרש (כולל הסידור מיקום של הטיפוס בברית הכחולה)
                         if (isStaticShootingActive) {
                             fieldButtonsBase.forEach { button ->
                                 val isSelected = selectedButtonId == button.id
@@ -174,7 +172,7 @@ fun App() {
                             }
                         }
 
-                        // כפתורי שורה סימטריים
+                        // יאי הפסקתי להתעצל וסידרתי כפתורי שורה סימטריים כשמבוטל הכפתור החמישי ועושים עליו חרם
                         visibleButtons.forEachIndexed { index, button ->
                             val spacing = 1f / (visibleButtons.size + 1)
                             val symX = (index + 1) * spacing - (rowBtnWidth.value / maxWidth.value / 2)
@@ -197,7 +195,7 @@ fun App() {
 
                         // רובוט (מחוץ ללולאה!)
                         val rawXPercent = robotPose.x.toFloat() / fieldWidthMeters
-                        val robotXPercent = 1.0f - rawXPercent // הופך את צד שמאל לימין
+                        val robotXPercent = 1.0f - rawXPercent // הופך את צד שמאל לימין כי האפליקציה השתגעה והיא שונאת את הטבלה (יאי אנחנו באותה דעה)
                         val robotYPercent = robotPose.y.toFloat()  / fieldHeightMeters
 
                         val robotSizePx = boardWidthPx * 0.06f
@@ -250,7 +248,6 @@ internal fun AllianceStyledButton(
     val backgroundColor = if (isSelected) activeColor.copy(alpha = 0.8f) else baseColor.copy(alpha = 0.35f)
     val borderColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f)
 
-    // פונט דינמי - בערך 1.2% מרוחב המגרש
     val dynamicFontSize = (boardWidthPx * 0.012f).coerceAtLeast(8f).sp
 
     Surface(
