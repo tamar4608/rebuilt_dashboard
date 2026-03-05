@@ -201,7 +201,7 @@ fun App() {
                                     boardWidthPx = boardWidthPx.toFloat(),
                                     onClick = { selectedButtonId = if (isSelected) null else button.id
                                         NetworkTableInstance.getDefault()
-                                            .getTable("AdvantageKit/DriverDashboard/$selectedButtonId")
+                                            .getTable("AdvantageKit/DriverDashboard/shootLocation")
                                             .getStringTopic("shootLocation")
                                             .publish().set(selectedButtonId ?: "None")
 
