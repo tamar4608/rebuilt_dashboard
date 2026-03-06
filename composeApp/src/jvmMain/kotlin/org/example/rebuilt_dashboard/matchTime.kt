@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.*
 
 object MatchTime {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val _matchTime = MutableStateFlow(150_000L) // 02:30 במילישניות
+    private val _matchTime = MutableStateFlow(160000L) // 02:30 במילישניות
     var matchTime = _matchTime.asStateFlow()
 
     private var timerJob: Job? = null

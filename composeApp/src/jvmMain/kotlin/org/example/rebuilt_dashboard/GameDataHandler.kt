@@ -35,7 +35,16 @@ private fun isShiftOneActiveRed(): Boolean? {
 }
 
 private val SHIFT_CHANGES =
-    listOf(2*60 + 10, 1*60 + 45, 1*60 + 20, 55, 30)
+    listOf(160 //אוטונומי
+        , 140 //זמן לכולם
+        , 130 //זמן ללוזרים
+        , 105 //זמן למוצלחים (אורביט)
+         , 80 //עוד זמן ללוזרים
+        , 55 //עוד זמן למוצלחים (אורביט)
+        , 30 //יאי אנד גיים נגמר האירוע יאללה פוצץ
+    )
+
+
 
 val isOurHubActive: Boolean
     get() {

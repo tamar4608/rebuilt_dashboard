@@ -146,19 +146,26 @@ fun App() {
                             )
 
                             // האקטיב המציק של אדר
-                                // תוסיפי שאם זה זמני אוטונומי או אנדגיים זה יהיה כתוב
-                            val isActive = isOurHubActive
-                            val timeToWait = timeUntilNextShift
-                            val statusText = if (isActive) "Inactive in: ${timeToWait}s" else "Active in: ${timeToWait}s"
-                            val statusColor = if (isActive) Color.Green.copy(alpha = 0.8f) else Color.Yellow.copy(alpha = 0.8f)
+                            val statusText = when {
+                                timeInMillis > 140000L -> "Auto ends in: ${timeInMillis / 1000 - 140}s"
+                                timeInMillis in 130001L..140000L -> "Everyone active ends in: ${timeInMillis / 1000 - 130}s"
+                                timeInMillis < 30000L -> "EndGame ends in: ${timeInMillis / 1000}s"
+                                timeUntilNextShift > 0 -> if (isOurHubActive) "Inactive in: ${timeUntilNextShift}s" else "Active in: ${timeUntilNextShift}s"
+                                else -> ""
+                            }
 
-                            if (timeToWait > 0) { // מציג רק אם יש משמרת קרובה
+                            val statusColor = when {
+                                timeInMillis > 130000L || isOurHubActive -> Color.Green.copy(alpha = 0.8f)
+                                else -> Color.Yellow.copy(alpha = 0.8f)
+                            }
+
+                            if (statusText.isNotEmpty()) {
+                                Spacer(modifier = Modifier.width(12.dp)) // רווח מהטיימר
                                 Text(
                                     text = statusText,
                                     color = statusColor,
-                                    fontSize = (dynamicTimerFontSize.value * 0.3f).sp, // טקסט קטן משמעותית
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(top = 4.dp)
+                                    fontSize = (dynamicTimerFontSize.value * 0.35f).sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
@@ -234,7 +241,7 @@ fun App() {
                             )
                         }
 
-                        // רובוט (מחוץ ללולאה!)
+                        // אחלה רובוט
                         val rawXPercent = robotPose.x.toFloat() / fieldWidthMeters
                         val robotXPercent = 1.0f - rawXPercent // הופך את צד שמאל לימין כי האפליקציה השתגעה והיא שונאת את הטבלה (יאי אנחנו באותה דעה)
                         val robotYPercent = robotPose.y.toFloat()  / fieldHeightMeters
