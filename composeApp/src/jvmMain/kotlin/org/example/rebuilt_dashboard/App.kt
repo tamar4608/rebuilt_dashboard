@@ -260,7 +260,7 @@ fun App() {
                                 .size(robotSizeDp)
                         ) {
                             Surface(
-                                modifier = Modifier.fillMaxSize().graphicsLayer(rotationZ = robotPose.rotation.degrees.toFloat() + 180f),
+                                modifier = Modifier.fillMaxSize().graphicsLayer(rotationZ = robotPose.rotation.degrees.toFloat() + 90f),
                                 shape = RoundedCornerShape(8.dp),
                                 color = (if (currentAlliance == Alliance.RED) Color(0xFFE53935) else Color(0xFF1E88E5)).copy(alpha = 0.6f),
                                 border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.8f))
