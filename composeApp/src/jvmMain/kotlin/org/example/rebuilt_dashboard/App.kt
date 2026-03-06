@@ -48,8 +48,12 @@ internal object DashboardData {
     val robotPoseSubscriber = NetworkTableInstance.getDefault().getTable("/AdvantageKit/RealOutputs/Odometry")
         .getStructTopic("Robot", edu.wpi.first.math.geometry.Pose2d.struct)
         .subscribe(edu.wpi.first.math.geometry.Pose2d())
+    val robotPoseFlow = kotlinx.coroutines.flow.MutableStateFlow(edu.wpi.first.math.geometry.Pose2d())
 
-
+    fun updatePosePeriodically() {
+        val pose = robotPoseSubscriber.get()
+        robotPoseFlow.value = pose
+    }
 }
 
 data class FieldLocationButton(
@@ -109,8 +113,14 @@ fun App() {
             )
         }
 
+        //נו כל ההגדרות המציקות של לעדכן את הרובוט והאם השוטינג סטטי קיים ומידות וכל מיני שטויות קיצר זה פה
         val isStaticShootingActive = rowButtons.find { it.id == "Static Shooting" }?.active ?: false
-        val robotPose = DashboardData.robotPoseSubscriber.get()
+        val robotPose by produceState(initialValue = edu.wpi.first.math.geometry.Pose2d()) {
+            while (true) {
+                value = DashboardData.robotPoseSubscriber.get()
+                kotlinx.coroutines.delay(20)
+            }
+        }
         val fieldWidthMeters = 16.54f
         val fieldHeightMeters = 8.07f
 
