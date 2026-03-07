@@ -22,8 +22,6 @@ import rebuilt_dashboard.composeapp.generated.resources.Res
 import rebuilt_dashboard.composeapp.generated.resources.arrow_right
 import rebuilt_dashboard.composeapp.generated.resources.field_2026_RB
 
-
-
 internal enum class Alliance {
     RED, BLUE
 }
@@ -36,14 +34,12 @@ internal object DashboardData {
     val currentAlliance: Alliance
         get() = if (isRedSubscriber.get()) Alliance.RED else Alliance.BLUE
 
+    internal val _isCompetition = NetworkTableInstance.getDefault().getTable("AdvantageKit/DriverStation/FMSAttached")
+        .getBooleanTopic("_isCompetition")
+        .subscribe(false)
 
-
-     internal val _isCompetition = NetworkTableInstance.getDefault().getTable("AdvantageKit/DriverStation/FMSAttached")
-            .getBooleanTopic("_isCompetition")
-            .subscribe(false)
-
-        val isCompetition: Boolean
-            get() = _isCompetition.get()
+    val isCompetition: Boolean
+        get() = _isCompetition.get()
 
     val robotPoseSubscriber = NetworkTableInstance.getDefault().getTable("/AdvantageKit/RealOutputs/Odometry")
         .getStructTopic("Robot", edu.wpi.first.math.geometry.Pose2d.struct)
@@ -61,20 +57,20 @@ data class RowButtons(
     val initialX: Float,
     val initialY: Float,
     var active: Boolean
-
 )
-
-
-
 
 @Composable
 fun App() {
-    startClient(ConnectionType.LOCAL)
+    startClient(ConnectionType.LOCAL) // Assuming this is defined elsewhere in your project
     MaterialTheme {
         var selectedButtonId by remember { mutableStateOf<String?>(null) }
         val currentAlliance = DashboardData.currentAlliance
         val timeInMillis by MatchTime.matchTime.collectAsState()
         val isInMatch = DashboardData.isCompetition
+
+        // Winning Auto State
+        var winningAutoExpanded by remember { mutableStateOf(false) }
+        var winningAutoSelection by remember { mutableStateOf("AUTO") }
 
         val rowButtons = remember {
             mutableStateListOf(
@@ -88,7 +84,7 @@ fun App() {
 
         fun updateRowButtonInNT(id: String, isActive: Boolean) {
             NetworkTableInstance.getDefault()
-                .getTable("AdvantageKit/DriverDashboard/RowButtons/$id")
+                .getTable("AdvantageKit/DriverDashboard/RowButtons")
                 .getBooleanTopic("$id")
                 .publish()
                 .set(isActive)
@@ -107,7 +103,7 @@ fun App() {
             )
         }
 
-        //נו כל ההגדרות המציקות של לעדכן את הרובוט והאם השוטינג סטטי קיים ומידות וכל מיני שטויות קיצר זה פה
+        // נו כל ההגדרות המציקות של לעדכן את הרובוט והאם השוטינג סטטי קיים ומידות וכל מיני שטויות קיצר זה פה
         val isStaticShootingActive = rowButtons.find { it.id == "Static Shooting" }?.active ?: false
         var robotPose by remember { mutableStateOf(edu.wpi.first.math.geometry.Pose2d()) }
 
@@ -140,6 +136,48 @@ fun App() {
                         Row(verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center) {
 
+                            Box {
+                                Button(
+                                    onClick = { winningAutoExpanded = true },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.5f)),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Auto: $winningAutoSelection", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                                DropdownMenu(
+                                    expanded = winningAutoExpanded,
+                                    onDismissRequest = { winningAutoExpanded = false }
+                                ) {
+                                    listOf("AUTO", "RED", "BLUE").forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option) },
+                                            onClick = {
+                                                winningAutoSelection = option
+                                                winningAutoExpanded = false
+                                                when (option) {
+                                                    "AUTO" -> {
+                                                        gameSpecific = ""
+                                                    }
+                                                    "RED" -> {
+                                                        gameSpecific = "R"
+                                                    }
+                                                    "BLUE" -> {
+                                                        gameSpecific = "B"
+                                                    }
+                                                }
+                                                NetworkTableInstance.getDefault()
+                                                    .getTable("AdvantageKit/DriverDashboard")
+                                                    .getStringTopic("WinningAuto")
+                                                    .publish()
+                                                    .set(option)
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
                             // הטיימר הראשי
                             Text(
                                 text = formatTime(timeInMillis),
@@ -151,6 +189,20 @@ fun App() {
                                     shape = RoundedCornerShape(8.dp)
                                 ).padding(horizontal = 20.dp, vertical = 5.dp)
                             )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            // --- NEW: Reset Timer Button ---
+                            Button(
+                                onClick = {
+                                    MatchTime.resetTimer()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.7f)),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Text("Reset Timer", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
 
                             // האקטיב המציק של אדר
                             val statusText = when {
@@ -167,7 +219,7 @@ fun App() {
                             }
 
                             if (statusText.isNotEmpty()) {
-                                Spacer(modifier = Modifier.width(12.dp)) // רווח מהטיימר
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = statusText,
                                     color = statusColor,
@@ -218,7 +270,6 @@ fun App() {
                                             .getTable("AdvantageKit/DriverDashboard/shootLocation")
                                             .getStringTopic("shootLocation")
                                             .publish().set(selectedButtonId ?: "None")
-
                                     }
                                 )
                             }
@@ -267,7 +318,7 @@ fun App() {
                                 .size(robotSizeDp)
                         ) {
                             Surface(
-                                modifier = Modifier.fillMaxSize().graphicsLayer(rotationZ = robotPose.rotation.degrees.toFloat() + 90f),
+                                modifier = Modifier.fillMaxSize().graphicsLayer(rotationZ = robotPose.rotation.degrees.toFloat()*-1 - 180),
                                 shape = RoundedCornerShape(8.dp),
                                 color = (if (currentAlliance == Alliance.RED) Color(0xFFE53935) else Color(0xFF1E88E5)).copy(alpha = 0.6f),
                                 border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.8f))
@@ -327,10 +378,10 @@ internal fun AllianceStyledButton(
         }
     }
 }
+
 private fun formatTime(millis: Long): String {
     val totalSeconds = millis / 1000
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     return "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
 }
-

@@ -55,6 +55,6 @@ object MatchTime {
     // פונקציה לאיפוס השעון במידת הצורך
     fun resetTimer() {
         stopCountdown()
-        _matchTime.value = 150_000L
+        _matchTime.value = 160_000L
     }
 }
